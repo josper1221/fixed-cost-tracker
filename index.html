@@ -1,6 +1,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>固定支出追蹤簿</title>
+<meta name="description" content="追蹤貸款、軟體訂閱、AI 服務、影音串流等每月固定支出。自動把每週／每季／每年的帳換算成每月等值，一眼看出每月被綁走多少錢。資料只存在你自己的瀏覽器，不用註冊。">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#00806A" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111412" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="固定支出">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta property="og:type" content="website">
+<meta property="og:title" content="固定支出追蹤簿">
+<meta property="og:description" content="貸款、訂閱、AI 服務全部記在一起，自動換算每月等值。開了就能用，資料只存在你自己的瀏覽器。">
+<meta property="og:url" content="https://josper1221.github.io/fixed-cost-tracker/">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2300806A'/%3E%3Cg fill='%23fff'%3E%3Crect x='14' y='17' width='36' height='7' rx='3.5'/%3E%3Crect x='14' y='28.5' width='26' height='7' rx='3.5'/%3E%3Crect x='14' y='40' width='16' height='7' rx='3.5'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%2300806A'/%3E%3Cg fill='%23fff'%3E%3Crect x='14' y='17' width='36' height='7' rx='3.5'/%3E%3Crect x='14' y='28.5' width='26' height='7' rx='3.5'/%3E%3Crect x='14' y='40' width='16' height='7' rx='3.5'/%3E%3C/g%3E%3C/svg%3E">
 
 <style>
 /* ─────────────────────────────────────────────────────────────
@@ -296,6 +310,15 @@ tfoot td.r{font-family:var(--font-num);font-variant-numeric:tabular-nums}
 .modal-body{padding:20px 22px;display:flex;flex-direction:column;gap:16px}
 .modal-foot{padding:14px 22px;border-top:1px solid var(--rule);display:flex;gap:8px;
   justify-content:flex-end;background:var(--surface-2);flex-wrap:wrap}
+.wmark{width:38px;height:38px;border-radius:10px;background:var(--accent);flex:none;
+  display:block;position:relative}
+.wmark::before,.wmark::after{content:"";position:absolute;left:8px;height:4px;border-radius:2px;background:#fff}
+.wmark::before{top:11px;width:22px;box-shadow:0 7px 0 #fff}
+.wmark::after{top:25px;width:9px}
+.wlist{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px;
+  font-size:13.5px;color:var(--ink-2);line-height:1.65}
+.wlist li::marker{color:var(--accent)}
+.wlist b{color:var(--ink)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
 .calc-note{font-size:12.5px;color:var(--ink-2);background:var(--surface-3);
@@ -530,11 +553,10 @@ function newProfile(name){
   };
 }
 
+/** 全新訪客：空白帳本 + 顯示歡迎畫面讓他自己選要不要看範例 */
 function freshDB(){
   const p = newProfile("我的支出");
-  seedSample(p);
-  p.sample = true;
-  return { version:1, theme:"auto", active:p.id, profiles:[p] };
+  return { version:1, theme:"auto", active:p.id, profiles:[p], welcomed:false };
 }
 
 function seedSample(p){
@@ -576,6 +598,8 @@ function load(){
       p.base  = p.base  || "TWD";
     });
     if(!DB.profiles.some(p=>p.id===DB.active)) DB.active = DB.profiles[0].id;
+    // 舊版存檔沒有這個欄位；已經在用的人不該再被歡迎一次
+    if(DB.welcomed === undefined) DB.welcomed = true;
   }catch(e){
     DB = freshDB();
   }
@@ -1439,6 +1463,47 @@ function dataModal(){
 }
 
 /* ════════════════════════════════════════════════════════════
+   12b. 歡迎畫面（只有全新訪客會看到一次）
+   ════════════════════════════════════════════════════════════ */
+function welcomeModal(){
+  openModal(`
+    <div class="modal-head">
+      <span class="wmark" aria-hidden="true"></span>
+      <div>
+        <span class="eyebrow">Recurring Cost Ledger</span>
+        <h3 style="margin-top:1px">歡迎使用固定支出追蹤簿</h3>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p style="margin:0;color:var(--ink-2);font-size:14px;line-height:1.7">
+        把房貸、車貸、Netflix、ChatGPT、Adobe 這些每個月自動扣的錢記在同一個地方。
+        不管是月繳、季繳還是年繳，都會自動換算成<b>每月等值</b>，讓你一眼看出
+        每個月到底有多少錢是還沒花就先被綁走的。
+      </p>
+      <ul class="wlist">
+        <li><b>不用註冊</b>，沒有帳號密碼，開了就能用。</li>
+        <li><b>資料只存在你這台裝置的瀏覽器裡</b>，不會上傳到任何伺服器 —— 別人開同一個網址，看到的是他自己的空白帳本，看不到你的。</li>
+        <li>換手機或換電腦不會同步，所以請記得偶爾用「資料 → 匯出 JSON 備份」存一份。</li>
+      </ul>
+      <div class="calc-note" style="margin-top:2px">
+        想放到手機主畫面像 App 一樣用：在 Safari 按「分享 → 加入主畫面」，
+        Chrome 則是右上選單的「加到主畫面」。
+      </div>
+    </div>
+    <div class="modal-foot" style="justify-content:space-between">
+      <button class="btn" id="wSample">先看範例長什麼樣</button>
+      <button class="btn btn-primary" id="wStart">直接開始，我自己填 →</button>
+    </div>`);
+
+  const done = ()=>{ DB.welcomed = true; save(); render(); closeModal(); };
+  $("#wStart").onclick  = ()=>{ done(); toast("按右上角「＋ 新增支出」記下第一筆"); };
+  $("#wSample").onclick = ()=>{
+    const p = P(); seedSample(p); p.sample = true;
+    done(); toast("這些是假資料，隨時可以一鍵清空");
+  };
+}
+
+/* ════════════════════════════════════════════════════════════
    13. Tooltip
    ════════════════════════════════════════════════════════════ */
 const tip = $("#tip");
@@ -1540,6 +1605,7 @@ document.addEventListener("keydown", e=>{
 load();
 applyTheme();
 render();
+if(!DB.welcomed) welcomeModal();
 
 })();
 </script>
