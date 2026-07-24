@@ -44,9 +44,12 @@
   --s1:#00806A; --s2:#D4622A; --s3:#3F55C9; --s4:#B0821C;
   --s5:#C93370; --s6:#0E8FB0; --s7:#6E9410; --s8:#8A3FC0;
 
-  --font-display:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Noto Serif TC","Songti TC","PMingLiU",serif;
-  --font-ui:system-ui,-apple-system,"Segoe UI","PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
-  --font-num:ui-monospace,"Cascadia Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  /* 全部走無襯線：Windows 上中文落在微軟正黑體，不會掉進新細明體 */
+  --font-display:"Segoe UI Variable Display","Segoe UI","SF Pro Display",system-ui,-apple-system,
+    "PingFang TC","Microsoft JhengHei UI","Microsoft JhengHei","Noto Sans TC","Hiragino Sans GB",sans-serif;
+  --font-ui:"Segoe UI Variable Text","Segoe UI","SF Pro Text",system-ui,-apple-system,
+    "PingFang TC","Microsoft JhengHei UI","Microsoft JhengHei","Noto Sans TC","Hiragino Sans GB",sans-serif;
+  --font-num:"Cascadia Mono","SF Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,"Microsoft JhengHei",monospace;
 }
 @media (prefers-color-scheme: dark){
   :root:where(:not([data-theme="light"])){
@@ -110,6 +113,41 @@ body{margin:0}
   -webkit-font-smoothing:antialiased;
 }
 .wrap{max-width:1180px;margin:0 auto;padding:0 20px 72px}
+.shell{display:flex;align-items:flex-start;min-height:100vh}
+.main{flex:1;min-width:0}
+
+/* ── Sidebar ────────────────────────────────────────────────── */
+.sidebar{
+  width:250px;flex:none;position:sticky;top:0;height:100vh;z-index:50;
+  background:var(--surface);border-right:1px solid var(--rule);
+  display:flex;flex-direction:column;
+}
+.side-brand{display:flex;align-items:center;gap:11px;padding:16px 16px 14px;border-bottom:1px solid var(--rule)}
+.side-brand h1{font-family:var(--font-display);font-size:17px;font-weight:700;margin:0;
+  letter-spacing:-.02em;line-height:1.2}
+.side-brand .eyebrow{font-size:9px}
+.side-nav{flex:1;overflow-y:auto;padding:12px 10px;display:flex;flex-direction:column;gap:2px}
+.nav-sec{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);
+  font-weight:600;padding:14px 12px 5px}
+.nav-item{
+  display:flex;align-items:center;gap:9px;width:100%;
+  padding:7px 12px;border:none;background:none;border-radius:8px;cursor:pointer;
+  font:inherit;font-size:13.5px;color:var(--ink-2);text-align:left;
+  transition:background .12s,color .12s;
+}
+.nav-item:hover{background:var(--surface-3);color:var(--ink)}
+.nav-item.is-on{background:var(--accent-soft);color:var(--accent-2);font-weight:600}
+.nav-item.is-on:hover{background:var(--accent-soft)}
+.nav-txt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav-val{font-family:var(--font-num);font-variant-numeric:tabular-nums;font-size:11.5px;
+  color:var(--ink-3);flex:none}
+.nav-item.is-on .nav-val{color:var(--accent-2)}
+.nav-item.is-zero .nav-txt,.nav-item.is-zero .nav-val{opacity:.5}
+.side-foot{padding:12px 14px 14px;border-top:1px solid var(--rule);display:flex;flex-direction:column;gap:6px}
+.side-foot .row{display:flex;gap:6px}
+.side-foot select{font-size:13px;padding:6px 9px}
+.side-scrim{position:fixed;inset:0;background:rgba(16,20,18,.45);z-index:45;border:none}
+.btn-menu{display:none}
 .num{font-family:var(--font-num);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
 .eyebrow{
   font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
@@ -127,15 +165,15 @@ body{margin:0}
   position:sticky;top:0;z-index:40;
 }
 .masthead-in{
-  max-width:1180px;margin:0 auto;padding:14px 20px;
-  display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+  max-width:1180px;margin:0 auto;padding:13px 20px;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
 }
-.brand{display:flex;flex-direction:column;gap:1px;margin-right:auto;min-width:0}
-.brand h1{
+.view-head{display:flex;flex-direction:column;gap:1px;margin-right:auto;min-width:0}
+.view-head h2{
   font-family:var(--font-display);
-  font-size:23px;font-weight:600;margin:0;letter-spacing:-.01em;line-height:1.15;
+  font-size:21px;font-weight:700;margin:0;letter-spacing:-.025em;line-height:1.2;
 }
-.brand .eyebrow{font-size:9.5px}
+.view-sub{font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
 .mast-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 
 /* ── Controls ───────────────────────────────────────────────── */
@@ -196,7 +234,7 @@ select{cursor:pointer;appearance:none;
 }
 .panel-head{display:flex;align-items:baseline;gap:10px;margin-bottom:4px;flex-wrap:wrap}
 .panel-head h2{
-  font-family:var(--font-display);font-size:16.5px;font-weight:600;margin:0;letter-spacing:-.005em;
+  font-family:var(--font-display);font-size:16px;font-weight:700;margin:0;letter-spacing:-.018em;
 }
 .panel-note{font-size:11.5px;color:var(--ink-3);margin-left:auto}
 .panel-sub{font-size:12px;color:var(--ink-3);margin:0 0 14px}
@@ -249,7 +287,7 @@ select{cursor:pointer;appearance:none;
 }
 .ledger-head{padding:16px 20px 14px;border-bottom:1px solid var(--rule);
   display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.ledger-head h2{font-family:var(--font-display);font-size:16.5px;font-weight:600;margin:0}
+.ledger-head h2{font-family:var(--font-display);font-size:16px;font-weight:700;margin:0;letter-spacing:-.018em}
 .filters{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap;align-items:center}
 .filters input[type=text]{width:170px}
 .filters select{width:auto}
@@ -306,7 +344,7 @@ tfoot td.r{font-family:var(--font-num);font-variant-numeric:tabular-nums}
 }
 .modal.narrow{max-width:460px}
 .modal-head{padding:18px 22px 14px;border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:12px}
-.modal-head h3{font-family:var(--font-display);font-size:19px;font-weight:600;margin:0}
+.modal-head h3{font-family:var(--font-display);font-size:18.5px;font-weight:700;margin:0;letter-spacing:-.022em}
 .modal-body{padding:20px 22px;display:flex;flex-direction:column;gap:16px}
 .modal-foot{padding:14px 22px;border-top:1px solid var(--rule);display:flex;gap:8px;
   justify-content:flex-end;background:var(--surface-2);flex-wrap:wrap}
@@ -315,6 +353,9 @@ tfoot td.r{font-family:var(--font-num);font-variant-numeric:tabular-nums}
 .wmark::before,.wmark::after{content:"";position:absolute;left:8px;height:4px;border-radius:2px;background:#fff}
 .wmark::before{top:11px;width:22px;box-shadow:0 7px 0 #fff}
 .wmark::after{top:25px;width:9px}
+.side-brand .wmark{width:30px;height:30px;border-radius:8px}
+.side-brand .wmark::before{top:8.5px;left:6.5px;width:17px;height:3.5px;box-shadow:0 5.5px 0 #fff}
+.side-brand .wmark::after{top:20px;left:6.5px;width:7px;height:3.5px}
 .wlist{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px;
   font-size:13.5px;color:var(--ink-2);line-height:1.65}
 .wlist li::marker{color:var(--accent)}
@@ -352,7 +393,18 @@ tfoot td.r{font-family:var(--font-num);font-variant-numeric:tabular-nums}
   box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:95}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
-@media (max-width:900px){
+.panels.is-single{grid-template-columns:1fr}
+
+@media (max-width:1080px){
+  .sidebar{width:218px}
+}
+@media (max-width:960px){
+  .sidebar{
+    position:fixed;left:0;top:0;bottom:0;height:100dvh;width:272px;
+    transform:translateX(-100%);transition:transform .22s ease;box-shadow:var(--shadow-lg);
+  }
+  .sidebar.is-open{transform:none}
+  .btn-menu{display:inline-flex}
   .statement{grid-template-columns:1fr 1fr}
   .stat:nth-child(3){border-left:none}
   .stat:nth-child(n+3){border-top:1px solid var(--rule)}
@@ -366,21 +418,41 @@ tfoot td.r{font-family:var(--font-num);font-variant-numeric:tabular-nums}
   .grid2,.grid3{grid-template-columns:1fr}
   .filters{width:100%}
   .filters input[type=text]{flex:1;width:auto}
-  .brand h1{font-size:20px}
+  .view-head h2{font-size:18px}
 }
 </style>
 
 <div class="app">
+<div class="shell">
+
+<aside class="sidebar" id="sidebar">
+  <div class="side-brand">
+    <span class="wmark" aria-hidden="true"></span>
+    <div style="min-width:0">
+      <span class="eyebrow">Recurring Ledger</span>
+      <h1>固定支出</h1>
+    </div>
+  </div>
+  <nav class="side-nav" id="sideNav" aria-label="主導覽"></nav>
+  <div class="side-foot">
+    <label class="eyebrow" for="profileSel">使用者檔案</label>
+    <div class="row">
+      <select id="profileSel" aria-label="切換使用者檔案"></select>
+      <button class="btn btn-sm" id="btnProfiles" style="flex:none">管理</button>
+    </div>
+  </div>
+</aside>
+
+<div class="main">
 
 <header class="masthead">
   <div class="masthead-in">
-    <div class="brand">
-      <span class="eyebrow">Recurring Cost Ledger</span>
-      <h1>固定支出追蹤簿</h1>
+    <button class="btn btn-sm btn-menu" id="btnMenu" aria-label="開啟選單" aria-expanded="false">☰</button>
+    <div class="view-head">
+      <h2 id="viewTitle">總覽</h2>
+      <span class="view-sub" id="viewSub"></span>
     </div>
     <div class="mast-tools">
-      <select id="profileSel" aria-label="切換使用者檔案" style="max-width:170px"></select>
-      <button class="btn btn-sm" id="btnProfiles">檔案</button>
       <button class="btn btn-sm" id="btnCats">分類</button>
       <button class="btn btn-sm" id="btnSettings">幣別</button>
       <button class="btn btn-sm" id="btnData">資料</button>
@@ -394,19 +466,19 @@ tfoot td.r{font-family:var(--font-num);font-variant-numeric:tabular-nums}
 
   <div id="sampleBanner" hidden></div>
 
-  <section class="statement" id="statement" aria-label="總覽"></section>
+  <section class="statement" id="statement" aria-label="金額總覽"></section>
 
-  <div class="panels">
-    <section class="panel">
+  <div class="panels" id="panels">
+    <section class="panel" id="panelCat">
       <div class="panel-head">
         <h2>各分類每月開銷</h2>
         <span class="panel-note" id="catNote"></span>
       </div>
-      <p class="panel-sub">所有週期已換算成「每月等值」，方便橫向比較。點一下分類可只看該分類的明細。</p>
+      <p class="panel-sub">所有週期已換算成「每月等值」，方便橫向比較。點一下分類可以只看那一類。</p>
       <div class="cbars" id="catChart"></div>
     </section>
 
-    <section class="panel">
+    <section class="panel" id="panelMon">
       <div class="panel-head">
         <h2>未來 12 個月實際扣款</h2>
         <span class="panel-note" id="monNote"></span>
@@ -416,7 +488,7 @@ tfoot td.r{font-family:var(--font-num);font-variant-numeric:tabular-nums}
     </section>
   </div>
 
-  <section class="panel" style="margin-top:18px">
+  <section class="panel" id="panelUp" style="margin-top:18px">
     <div class="panel-head">
       <h2>接下來 30 天要扣的款</h2>
       <span class="panel-note" id="upNote"></span>
@@ -452,6 +524,10 @@ tfoot td.r{font-family:var(--font-num);font-variant-numeric:tabular-nums}
   </section>
 </div>
 
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<button class="side-scrim" id="sideScrim" aria-label="關閉選單" hidden></button>
 <div class="scrim" id="scrim" hidden></div>
 <div id="tip" role="status"></div>
 <div id="toast" role="status"></div>
@@ -669,8 +745,25 @@ function remainingOf(it){
   const n = chargesIn(it, from, addDays(end,1)).length;
   return { n, total: n * (Number(it.amount)||0) * rate(it.cur) };
 }
-function activeItems(){ return P().items.filter(i=>i.status==="active"); }
-function totalMonthly(){ return activeItems().reduce((s,i)=>s+monthlyOf(i),0); }
+function activeIn(list){ return list.filter(i=>i.status==="active"); }
+function monthlySum(list){ return list.reduce((s,i)=>s+monthlyOf(i),0); }
+function activeItems(){ return activeIn(P().items); }
+function totalMonthly(){ return monthlySum(activeItems()); }
+
+/* ── 目前檢視 ──────────────────────────────────────────────────
+   view: "dashboard" | "all" | "paused" | "cat:<id>"
+   側邊欄選什麼，下面所有數字與圖表就只算那個範圍。            */
+let view = "dashboard";
+const viewCat = () => view.startsWith("cat:") ? view.slice(4) : null;
+
+function scopedItems(){
+  const items = P().items;
+  if(view === "paused") return items.filter(i=>i.status==="paused");
+  const cid = viewCat();
+  if(cid) return items.filter(i=>i.cat===cid);
+  return items;
+}
+function scopedActive(){ return activeIn(scopedItems()); }
 
 function catById(id){ return P().cats.find(c=>c.id===id) || null; }
 function catName(id){ const c=catById(id); return c?c.name:"未分類"; }
@@ -681,9 +774,9 @@ function catColor(id){ const c=catById(id); return "var(--s"+(c?((c.slot-1)%SLOT
    ════════════════════════════════════════════════════════════ */
 function renderStatement(){
   const p = P();
-  const m = totalMonthly();
-  const items = p.items;
-  const act = activeItems();
+  const items = scopedItems();
+  const act = activeIn(items);
+  const m = monthlySum(act);
   const from = new Date(); from.setHours(0,0,0,0);
   const to30 = addDays(from, 30);
   let due30 = 0, dueCount = 0;
@@ -739,8 +832,7 @@ function renderCatChart(){
   }
   $("#catChart").innerHTML = rows.map(r=>{
     const pct = total ? (r.v/total*100) : 0;
-    const on = filters.cat === r.id;
-    return `<button type="button" class="cbar" data-cat="${esc(r.id)}" aria-pressed="${on}"
+    return `<button type="button" class="cbar" data-cat="${esc(r.id)}"
       data-tip="${esc(r.name)}<br><b>${esc(p.base)} ${money(Math.round(r.v))}</b> / 月　·　<b>${esc(p.base)} ${money(Math.round(r.v*12))}</b> / 年<br>點一下只看這個分類">
       <span class="cbar-name">${esc(r.name)}</span>
       <span class="cbar-track"><span class="cbar-fill" style="width:${(r.v/max*100).toFixed(2)}%;background:${r.color}"></span></span>
@@ -759,7 +851,7 @@ function renderMonthChart(){
     buckets.push({d, total:0, count:0});
   }
   const endWin = new Date(start.getFullYear(), start.getMonth()+12, 1);
-  activeItems().forEach(it=>{
+  scopedActive().forEach(it=>{
     chargesIn(it, start, endWin).forEach(cd=>{
       const idx = (cd.getFullYear()-start.getFullYear())*12 + (cd.getMonth()-start.getMonth());
       if(idx>=0 && idx<12){
@@ -797,7 +889,7 @@ function renderUpcoming(){
   const from = new Date(); from.setHours(0,0,0,0);
   const to = addDays(from, 30);
   const list = [];
-  activeItems().forEach(it=>{
+  scopedActive().forEach(it=>{
     chargesIn(it, from, to).forEach(d=>{
       list.push({d, it, base:(Number(it.amount)||0)*rate(it.cur)});
     });
@@ -833,7 +925,7 @@ const filters = {q:"", cat:"all", status:"all", sort:"monthly"};
 
 function visibleItems(){
   const q = filters.q.trim().toLowerCase();
-  let rows = P().items.filter(it=>{
+  let rows = scopedItems().filter(it=>{
     if(filters.cat !== "all" && it.cat !== filters.cat) return false;
     if(filters.status !== "all" && it.status !== filters.status) return false;
     if(q){
@@ -901,9 +993,11 @@ function renderTable(){
       <th>項目</th><th>分類</th><th class="r">金額</th><th>週期</th>
       <th class="r">每月等值 (${esc(p.base)})</th><th>下次扣款</th><th>狀態</th><th></th>
     </tr></thead>
-    <tbody>${body || `<tr><td colspan="8" style="text-align:center;color:var(--ink-3);padding:34px">沒有符合條件的項目。</td></tr>`}</tbody>
+    <tbody>${body || `<tr><td colspan="8" style="text-align:center;color:var(--ink-3);padding:34px">${
+        viewCat() ? "「"+esc(catName(viewCat()))+"」還沒有任何項目。" : "沒有符合條件的項目。"
+      }</td></tr>`}</tbody>
     <tfoot><tr>
-      <td colspan="4">顯示 ${rows.length} / ${p.items.length} 筆　·　啟用中合計</td>
+      <td colspan="4">顯示 ${rows.length} / ${scopedItems().length} 筆　·　啟用中合計</td>
       <td class="r">${money(Math.round(shownMonthly))}</td>
       <td colspan="3" style="color:var(--ink-3);font-weight:400">每年 ${esc(p.base)} ${money(Math.round(shownMonthly*12))}</td>
     </tr></tfoot>`;
@@ -917,6 +1011,89 @@ function renderFilters(){
     p.cats.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("");
   sel.value = p.cats.some(c=>c.id===cur) ? cur : "all";
   filters.cat = sel.value;
+}
+
+/* ── 側邊欄與檢視切換 ─────────────────────────────────────── */
+function renderSidebar(){
+  const p = P();
+  const act = activeItems();
+  const paused = p.items.filter(i=>i.status==="paused").length;
+  const item = (v, label, val, extra) =>
+    `<button type="button" class="nav-item${view===v?" is-on":""}${extra&&extra.zero?" is-zero":""}"
+       data-view="${esc(v)}" aria-current="${view===v?"page":"false"}">
+      ${extra&&extra.dot ? `<span class="dot" style="background:${extra.dot}"></span>` : ""}
+      <span class="nav-txt">${esc(label)}</span>
+      <span class="nav-val">${val}</span>
+    </button>`;
+
+  const cats = p.cats.map(c=>{
+    const mine = act.filter(i=>i.cat===c.id);
+    const sum = monthlySum(mine);
+    return item("cat:"+c.id, c.name, sum>0 ? money(Math.round(sum)) : "—",
+                {dot:catColor(c.id), zero:!p.items.some(i=>i.cat===c.id)});
+  }).join("");
+
+  $("#sideNav").innerHTML =
+    item("dashboard", "總覽", money(Math.round(monthlySum(act)))) +
+    item("all", "全部項目", p.items.length) +
+    `<div class="nav-sec">分類（每月）</div>` + cats +
+    (paused ? `<div class="nav-sec">其他</div>` + item("paused", "已暫停", paused) : "");
+}
+
+function renderViewHead(){
+  const p = P();
+  const items = scopedItems();
+  const m = monthlySum(activeIn(items));
+  const n = items.length;
+  let title = "總覽";
+  if(view === "all")    title = "全部項目";
+  if(view === "paused") title = "已暫停的項目";
+  const cid = viewCat();
+  if(cid) title = catName(cid);
+  $("#viewTitle").textContent = title;
+  $("#viewSub").textContent = view === "paused"
+    ? n + " 個項目暫停中，不列入任何統計"
+    : (n ? "每月 " + p.base + " " + money(Math.round(m)) + "　·　" + n + " 個項目" : "還沒有項目");
+}
+
+/** 依檢視決定哪些區塊要出現 */
+function applyViewChrome(){
+  const dash   = view === "dashboard";
+  const paused = view === "paused";
+  const cid    = viewCat();
+  const listOnly = (view === "all" || paused);   // 純清單，不放圖表
+
+  $("#statement").hidden = listOnly;
+  $("#panels").hidden    = listOnly;
+  $("#panelCat").hidden  = !dash;
+  $("#panelMon").hidden  = listOnly;
+  $("#panelUp").hidden   = listOnly;
+  $("#panels").classList.toggle("is-single", !!cid);
+  // 分類檢視底下再放一次分類篩選器只會互相打架
+  $("#fCat").hidden      = !!cid;
+  $("#fStatus").hidden   = paused;
+}
+
+function setView(v){
+  view = v;
+  filters.q = ""; filters.cat = "all"; filters.status = "all";
+  $("#fSearch").value = "";
+  $("#fCat").value = "all";
+  $("#fStatus").value = "all";
+  closeDrawer();
+  render();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+function openDrawer(){
+  $("#sidebar").classList.add("is-open");
+  $("#sideScrim").hidden = false;
+  $("#btnMenu").setAttribute("aria-expanded","true");
+}
+function closeDrawer(){
+  $("#sidebar").classList.remove("is-open");
+  $("#sideScrim").hidden = true;
+  $("#btnMenu").setAttribute("aria-expanded","false");
 }
 
 function renderProfiles(){
@@ -944,7 +1121,15 @@ function renderBanner(){
 }
 
 function render(){
+  // 分類可能被刪掉，落在不存在的分類上就退回總覽
+  const cid = viewCat();
+  if(cid && !P().cats.some(c=>c.id===cid)) view = "dashboard";
+  if(view === "paused" && !P().items.some(i=>i.status==="paused")) view = "dashboard";
+
   renderProfiles();
+  renderSidebar();
+  renderViewHead();
+  applyViewChrome();
   renderBanner();
   renderStatement();
   renderCatChart();
@@ -975,7 +1160,11 @@ function closeModal(){
   if(lastFocus && lastFocus.focus) lastFocus.focus();
 }
 $("#scrim").addEventListener("mousedown", e=>{ if(e.target.id==="scrim") closeModal(); });
-document.addEventListener("keydown", e=>{ if(e.key==="Escape" && !$("#scrim").hidden) closeModal(); });
+document.addEventListener("keydown", e=>{
+  if(e.key !== "Escape") return;
+  if(!$("#scrim").hidden) closeModal();
+  else if($("#sidebar").classList.contains("is-open")) closeDrawer();
+});
 
 /* ════════════════════════════════════════════════════════════
    8. 新增 / 編輯 支出
@@ -1563,12 +1752,15 @@ $("#fSort").addEventListener("change", e=>{ filters.sort = e.target.value; rende
 
 $("#catChart").addEventListener("click", e=>{
   const b = e.target.closest(".cbar[data-cat]"); if(!b) return;
-  const id = b.dataset.cat;
-  filters.cat = (filters.cat === id) ? "all" : id;
-  $("#fCat").value = filters.cat;
-  renderCatChart(); renderTable();
-  if(filters.cat !== "all") $(".ledger").scrollIntoView({behavior:"smooth", block:"start"});
+  setView("cat:" + b.dataset.cat);
 });
+
+$("#sideNav").addEventListener("click", e=>{
+  const b = e.target.closest(".nav-item[data-view]"); if(!b) return;
+  setView(b.dataset.view);
+});
+$("#btnMenu").onclick   = ()=> $("#sidebar").classList.contains("is-open") ? closeDrawer() : openDrawer();
+$("#sideScrim").onclick = closeDrawer;
 
 $("#tbl").addEventListener("click", e=>{
   const btn = e.target.closest("button[data-act]"); if(!btn) return;
