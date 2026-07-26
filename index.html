@@ -250,15 +250,14 @@ select{cursor:pointer;appearance:none;
 .stat{padding:19px 22px 21px;border-left:1px solid var(--rule);display:flex;flex-direction:column;gap:7px}
 .stat:first-child{border-left:none}
 .stat-val{font-family:var(--font-num);font-variant-numeric:tabular-nums;
-  font-size:34px;font-weight:700;letter-spacing:-.038em;line-height:1.05;color:var(--ink)}
+  /* 窄螢幕時左右各只有半欄，字級跟著縮才塞得下六、七位數 */
+  font-size:clamp(22px,6.2vw,34px);
+  font-weight:700;letter-spacing:-.038em;line-height:1.05;color:var(--ink);white-space:nowrap}
 .stat-val .cur{font-size:14px;font-weight:500;color:var(--ink-3);margin-right:4px;letter-spacing:0}
 .stat-sub{font-size:12px;color:var(--ink-3);line-height:1.55}
-.hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
-.hero-main{display:flex;flex-direction:column;gap:6px;min-width:0}
-.hero-aside{display:flex;flex-direction:column;gap:6px;text-align:right;flex:none;padding-top:1px}
-.aside-val{font-family:var(--font-num);font-variant-numeric:tabular-nums;
-  font-size:20px;font-weight:600;letter-spacing:-.03em;line-height:1.05;color:var(--ink-2);white-space:nowrap}
-.aside-val .cur{font-size:11.5px;font-weight:500;color:var(--ink-3);margin-right:3px;letter-spacing:0}
+/* 卡片切成等寬左右兩半，右半也靠左排，兩組字級與排法完全相同 */
+.hero-top{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.hero-main,.hero-aside{display:flex;flex-direction:column;gap:6px;min-width:0}
 .fee-line{display:inline-block;margin-top:2px;font-family:var(--font-num);color:var(--ink-2)}
 .delta{display:inline-block;margin-top:2px;font-family:var(--font-num);font-weight:600}
 .delta.up{color:var(--warn)}
@@ -860,7 +859,7 @@ function renderStatement(){
         </div>
         <div class="hero-aside">
           <span class="eyebrow">每月平均</span>
-          <span class="aside-val"><span class="cur">${esc(p.base)}</span>${money(Math.round(avg))}</span>
+          <span class="stat-val"><span class="cur">${esc(p.base)}</span>${money(Math.round(avg))}</span>
         </div>
       </div>
       <span class="stat-sub">
