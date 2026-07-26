@@ -244,14 +244,17 @@ select{cursor:pointer;appearance:none;
 .statement{
   background:var(--surface);border:1px solid var(--rule);border-radius:12px;
   margin-top:26px;box-shadow:var(--shadow-sm);overflow:hidden;
-  display:grid;grid-template-columns:repeat(4,1fr);
+  display:grid;grid-template-columns:1.5fr 1fr;
 }
-.stat{padding:18px 20px 20px;border-left:1px solid var(--rule);display:flex;flex-direction:column;gap:6px}
+.stat{padding:19px 22px 21px;border-left:1px solid var(--rule);display:flex;flex-direction:column;gap:7px}
 .stat:first-child{border-left:none}
 .stat-val{font-family:var(--font-num);font-variant-numeric:tabular-nums;
-  font-size:29px;font-weight:600;letter-spacing:-.035em;line-height:1.05;color:var(--ink)}
-.stat-val .cur{font-size:14px;font-weight:500;color:var(--ink-3);margin-right:3px;letter-spacing:0}
-.stat-sub{font-size:12px;color:var(--ink-3);line-height:1.4}
+  font-size:34px;font-weight:700;letter-spacing:-.038em;line-height:1.05;color:var(--ink)}
+.stat-val .cur{font-size:14px;font-weight:500;color:var(--ink-3);margin-right:4px;letter-spacing:0}
+.stat-sub{font-size:12px;color:var(--ink-3);line-height:1.55}
+.delta{display:inline-block;margin-top:2px;font-family:var(--font-num);font-weight:600}
+.delta.up{color:var(--warn)}
+.delta.down{color:var(--accent-2)}
 .stat.is-hero{background:linear-gradient(180deg,var(--accent-soft),transparent 78%)}
 .stat.is-hero .stat-val{color:var(--accent-2)}
 
@@ -435,9 +438,7 @@ tfoot td.r{font-family:var(--font-num);font-variant-numeric:tabular-nums}
   .sidebar.is-open{transform:none}
   .btn-menu{display:inline-flex}
   .fab{display:flex;align-items:center;justify-content:center}
-  .statement{grid-template-columns:1fr 1fr}
-  .stat:nth-child(3){border-left:none}
-  .stat:nth-child(n+3){border-top:1px solid var(--rule)}
+  .statement{grid-template-columns:1.35fr 1fr}
   .panels{grid-template-columns:1fr}
   .grid3{grid-template-columns:1fr 1fr}
 }
@@ -809,37 +810,37 @@ function renderStatement(){
   const p = P();
   const items = scopedItems();
   const act = activeIn(items);
-  const m = monthlySum(act);
-  const from = new Date(); from.setHours(0,0,0,0);
-  const to30 = addDays(from, 30);
-  let due30 = 0, dueCount = 0;
+  const avg = monthlySum(act);                  // 換算後的每月平均
+
+  // 當月：這個日曆月份實際會扣的金額（年繳、季繳只有落在本月才算）
+  const now = new Date(); now.setHours(0,0,0,0);
+  const mStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const mEnd   = new Date(now.getFullYear(), now.getMonth()+1, 1);
+  let thisMonth = 0, thisCount = 0;
   act.forEach(it=>{
-    chargesIn(it, from, to30).forEach(()=>{
-      due30 += (Number(it.amount)||0) * rate(it.cur); dueCount++;
+    chargesIn(it, mStart, mEnd).forEach(()=>{
+      thisMonth += (Number(it.amount)||0) * rate(it.cur); thisCount++;
     });
   });
   const paused = items.length - act.length;
+  const vsAvg = thisMonth - avg;
 
   $("#statement").innerHTML = `
     <div class="stat is-hero">
-      <span class="eyebrow">每月固定支出</span>
-      <span class="stat-val"><span class="cur">${esc(p.base)}</span>${money(Math.round(m))}</span>
-      <span class="stat-sub">所有週期換算後的平均值</span>
+      <span class="eyebrow">${now.getMonth()+1} 月預計支出</span>
+      <span class="stat-val"><span class="cur">${esc(p.base)}</span>${money(Math.round(thisMonth))}</span>
+      <span class="stat-sub">
+        每月平均 ${esc(p.base)} ${money(Math.round(avg))}
+        ${thisCount ? `　·　本月 ${thisCount} 筆扣款` : ""}
+        ${avg>0 && Math.abs(vsAvg)>=1
+          ? `<br><span class="delta ${vsAvg>0?"up":"down"}">${vsAvg>0?"▲":"▼"} 比平均${vsAvg>0?"多":"少"} ${esc(p.base)} ${money(Math.round(Math.abs(vsAvg)))}</span>`
+          : ""}
+      </span>
     </div>
     <div class="stat">
-      <span class="eyebrow">每年固定支出</span>
-      <span class="stat-val"><span class="cur">${esc(p.base)}</span>${money(Math.round(m*12))}</span>
-      <span class="stat-sub">相當於每天 ${esc(p.base)} ${money(Math.round(m*12/365))}</span>
-    </div>
-    <div class="stat">
-      <span class="eyebrow">追蹤中的項目</span>
-      <span class="stat-val">${act.length}<span class="cur" style="margin-left:6px">／${items.length}</span></span>
-      <span class="stat-sub">${paused>0 ? paused+" 筆已暫停，不列入計算" : "全部啟用中"}</span>
-    </div>
-    <div class="stat">
-      <span class="eyebrow">未來 30 天要扣</span>
-      <span class="stat-val"><span class="cur">${esc(p.base)}</span>${money(Math.round(due30))}</span>
-      <span class="stat-sub">${dueCount} 筆扣款排程</span>
+      <span class="eyebrow">現在訂閱中</span>
+      <span class="stat-val">${act.length}<span class="cur" style="margin-left:5px">項</span></span>
+      <span class="stat-sub">${paused>0 ? "另有 "+paused+" 筆已暫停，不列入計算" : "全部啟用中"}</span>
     </div>`;
 }
 
