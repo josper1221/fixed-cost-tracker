@@ -865,7 +865,7 @@ function renderStatement(){
       <span class="stat-sub">
         ${thisCount ? `本月 ${thisCount} 筆扣款` : "本月沒有扣款"}
         ${thisFee > 0
-          ? `<br><span class="fee-line">含手續費 ${esc(p.base)} ${money(Math.round(thisFee))}　·　本體 ${esc(p.base)} ${money(Math.round(thisMonth-thisFee))}</span>`
+          ? `<br><span class="fee-line">含手續費 ${esc(p.base)} ${money(Math.round(thisFee))}</span>`
           : (feeItems ? `<br><span class="fee-line">本月無手續費扣款（${feeItems} 筆有設手續費）</span>` : "")}
         ${avg>0 && Math.abs(vsAvg)>=1
           ? `<br><span class="delta ${vsAvg>0?"up":"down"}">${vsAvg>0?"▲":"▼"} 比平均${vsAvg>0?"多":"少"} ${esc(p.base)} ${money(Math.round(Math.abs(vsAvg)))}</span>`
