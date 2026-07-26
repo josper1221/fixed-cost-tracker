@@ -44,12 +44,10 @@
   --s1:#00806A; --s2:#D4622A; --s3:#3F55C9; --s4:#B0821C;
   --s5:#C93370; --s6:#0E8FB0; --s7:#6E9410; --s8:#8A3FC0;
 
-  /* 全部走無襯線：Windows 上中文落在微軟正黑體，不會掉進新細明體 */
-  --font-display:"Segoe UI Variable Display","Segoe UI","SF Pro Display",system-ui,-apple-system,
-    "PingFang TC","Microsoft JhengHei UI","Microsoft JhengHei","Noto Sans TC","Hiragino Sans GB",sans-serif;
-  --font-ui:"Segoe UI Variable Text","Segoe UI","SF Pro Text",system-ui,-apple-system,
-    "PingFang TC","Microsoft JhengHei UI","Microsoft JhengHei","Noto Sans TC","Hiragino Sans GB",sans-serif;
-  --font-num:"Cascadia Mono","SF Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,"Microsoft JhengHei",monospace;
+  /* 中文標楷體、英數微軟正黑體（見上方 @font-face AppMix） */
+  --font-display:'AppMix',"DFKai-SB","BiauKai","Microsoft JhengHei UI","PingFang TC",sans-serif;
+  --font-ui:'AppMix',"Microsoft JhengHei UI","DFKai-SB","PingFang TC","Noto Sans TC",sans-serif;
+  --font-num:"Microsoft JhengHei UI","Microsoft JhengHei",'AppMix',system-ui,-apple-system,sans-serif;
 }
 @media (prefers-color-scheme: dark){
   :root:where(:not([data-theme="light"])){
@@ -100,6 +98,18 @@
   --s5:#E05C93; --s6:#1E99BB; --s7:#7CA31C; --s8:#A868DC;
 }
 
+/* 中文 → 標楷體，英文與數字 → 微軟正黑體：用 unicode-range 分流到同一家族 */
+@font-face{
+  font-family:'AppMix';
+  src:local('Microsoft JhengHei UI'),local('Microsoft JhengHei'),local('PingFang TC'),local('Noto Sans TC');
+  unicode-range:U+0000-024F,U+2000-206F,U+2070-209F,U+20A0-20CF,U+2100-214F,U+2190-21FF,U+2200-22FF,U+2460-24FF,U+2C60-2C7F;
+}
+@font-face{
+  font-family:'AppMix';
+  src:local('DFKai-SB'),local('BiauKai'),local('KaiTi'),local('Kaiti TC'),local('TW-Kai'),local('AR PL UKai TW');
+  unicode-range:U+2E80-2EFF,U+2F00-2FDF,U+3000-303F,U+3040-30FF,U+3190-319F,U+3400-4DBF,U+4E00-9FFF,U+F900-FAFF,U+FE30-FE4F,U+FF00-FFEF;
+}
+
 *{box-sizing:border-box}
 [hidden]{display:none !important}
 body{margin:0}
@@ -126,7 +136,15 @@ body{margin:0}
 .side-brand h1{font-family:var(--font-display);font-size:17px;font-weight:700;margin:0;
   letter-spacing:-.02em;line-height:1.2}
 .side-brand .eyebrow{font-size:9px}
-.side-nav{flex:1;overflow-y:auto;padding:12px 10px;display:flex;flex-direction:column;gap:2px}
+.side-add{padding:14px 14px 4px}
+.sidebar .btn-add-hero{
+  width:100%;justify-content:center;font-size:15px;font-weight:700;
+  padding:11px 14px;border-radius:10px;letter-spacing:.02em;
+  box-shadow:0 1px 2px rgba(0,128,106,.35),0 8px 18px -8px rgba(0,128,106,.55);
+}
+.sidebar .btn-add-hero:hover{transform:translateY(-1px)}
+.sidebar .btn-add-hero:active{transform:translateY(0)}
+.side-nav{flex:1;overflow-y:auto;padding:8px 10px 12px;display:flex;flex-direction:column;gap:2px}
 .nav-sec{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);
   font-weight:600;padding:14px 12px 5px}
 .nav-item{
@@ -148,6 +166,17 @@ body{margin:0}
 .side-foot select{font-size:13px;padding:6px 9px}
 .side-scrim{position:fixed;inset:0;background:rgba(16,20,18,.45);z-index:45;border:none}
 .btn-menu{display:none}
+
+/* 手機浮動新增鈕（桌機用側邊欄大鈕，這顆只在窄螢幕出現） */
+.fab{
+  display:none;position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom));
+  z-index:55;width:58px;height:58px;border-radius:50%;border:none;cursor:pointer;
+  background:var(--accent);color:#fff;font-size:30px;line-height:1;font-weight:400;
+  box-shadow:0 4px 12px rgba(0,128,106,.4),0 12px 30px -8px rgba(0,0,0,.4);
+  transition:transform .12s,background .12s;
+}
+.fab:hover{background:var(--accent-2)}
+.fab:active{transform:scale(.94)}
 .num{font-family:var(--font-num);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
 .eyebrow{
   font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
@@ -405,6 +434,7 @@ tfoot td.r{font-family:var(--font-num);font-variant-numeric:tabular-nums}
   }
   .sidebar.is-open{transform:none}
   .btn-menu{display:inline-flex}
+  .fab{display:flex;align-items:center;justify-content:center}
   .statement{grid-template-columns:1fr 1fr}
   .stat:nth-child(3){border-left:none}
   .stat:nth-child(n+3){border-top:1px solid var(--rule)}
@@ -433,6 +463,9 @@ tfoot td.r{font-family:var(--font-num);font-variant-numeric:tabular-nums}
       <h1>固定支出</h1>
     </div>
   </div>
+  <div class="side-add">
+    <button class="btn btn-primary btn-add-hero" id="btnAdd">＋　新增支出</button>
+  </div>
   <nav class="side-nav" id="sideNav" aria-label="主導覽"></nav>
   <div class="side-foot">
     <label class="eyebrow" for="profileSel">使用者檔案</label>
@@ -457,7 +490,6 @@ tfoot td.r{font-family:var(--font-num);font-variant-numeric:tabular-nums}
       <button class="btn btn-sm" id="btnSettings">幣別</button>
       <button class="btn btn-sm" id="btnData">資料</button>
       <button class="btn btn-sm btn-ghost" id="btnTheme" aria-label="切換深淺色">◐</button>
-      <button class="btn btn-sm btn-primary" id="btnAdd">＋ 新增支出</button>
     </div>
   </div>
 </header>
@@ -490,7 +522,7 @@ tfoot td.r{font-family:var(--font-num);font-variant-numeric:tabular-nums}
 
   <section class="panel" id="panelUp" style="margin-top:18px">
     <div class="panel-head">
-      <h2>接下來 30 天要扣的款</h2>
+      <h2>接下來 7 天要扣的款</h2>
       <span class="panel-note" id="upNote"></span>
     </div>
     <div class="upcoming" id="upcoming"></div>
@@ -528,6 +560,7 @@ tfoot td.r{font-family:var(--font-num);font-variant-numeric:tabular-nums}
 </div><!-- /shell -->
 
 <button class="side-scrim" id="sideScrim" aria-label="關閉選單" hidden></button>
+<button class="fab" id="btnAddFab" aria-label="新增支出">＋</button>
 <div class="scrim" id="scrim" hidden></div>
 <div id="tip" role="status"></div>
 <div id="toast" role="status"></div>
@@ -884,14 +917,15 @@ function renderMonthChart(){
     <div class="maxis">${axis}</div>`;
 }
 
+const UP_DAYS = 7;
 function renderUpcoming(){
   const p = P();
   const from = new Date(); from.setHours(0,0,0,0);
-  const to = addDays(from, 30);
+  const to = addDays(from, UP_DAYS + 1);   // 含第 7 天當天
   const list = [];
   scopedActive().forEach(it=>{
     chargesIn(it, from, to).forEach(d=>{
-      list.push({d, it, base:(Number(it.amount)||0)*rate(it.cur)});
+      if(daysBetween(from, d) <= UP_DAYS) list.push({d, it, base:(Number(it.amount)||0)*rate(it.cur)});
     });
   });
   list.sort((a,b)=>a.d-b.d);
@@ -901,21 +935,19 @@ function renderUpcoming(){
     : "";
 
   if(!list.length){
-    $("#upcoming").innerHTML = `<p class="stat-sub" style="padding:20px 0;text-align:center">未來 30 天沒有排定的扣款。</p>`;
+    $("#upcoming").innerHTML = `<p class="stat-sub" style="padding:20px 0;text-align:center">未來 ${UP_DAYS} 天沒有排定的扣款。</p>`;
     return;
   }
-  $("#upcoming").innerHTML = list.slice(0,12).map(x=>{
+  $("#upcoming").innerHTML = list.map(x=>{
     const dd = daysBetween(from, x.d);
-    const soon = dd <= 7;
-    const when = dd===0 ? "今天" : dd===1 ? "明天" : dd+" 天後";
+    const soon = dd <= 2;
+    const when = dd===0 ? "今天" : dd===1 ? "明天" : dd===2 ? "後天" : dd+" 天後";
     return `<div class="up-row${soon?" up-soon":""}">
       <span class="up-date"><b>${x.d.getDate()}</b>${x.d.getMonth()+1}月</span>
       <span class="up-name">${esc(x.it.name)}<small>${esc(catName(x.it.cat))}　·　${when}</small></span>
       <span class="up-amt">${esc(x.it.cur)} ${money(Number(x.it.amount)||0)}</span>
     </div>`;
-  }).join("") + (list.length>12
-    ? `<div class="up-row" style="color:var(--ink-3);font-size:12.5px;justify-items:center">
-         <span></span><span>還有 ${list.length-12} 筆…</span><span></span></div>` : "");
+  }).join("");
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -1730,8 +1762,9 @@ function applyTheme(){
 /* ════════════════════════════════════════════════════════════
    15. 事件綁定
    ════════════════════════════════════════════════════════════ */
-$("#btnAdd").onclick   = ()=> itemModal(null);
-$("#btnAdd2").onclick  = ()=> itemModal(null);
+$("#btnAdd").onclick    = ()=> itemModal(null);
+$("#btnAdd2").onclick   = ()=> itemModal(null);
+$("#btnAddFab").onclick = ()=> itemModal(null);
 $("#btnCats").onclick  = catsModal;
 $("#btnSettings").onclick = settingsModal;
 $("#btnData").onclick  = dataModal;
