@@ -252,6 +252,7 @@ select{cursor:pointer;appearance:none;
   font-size:34px;font-weight:700;letter-spacing:-.038em;line-height:1.05;color:var(--ink)}
 .stat-val .cur{font-size:14px;font-weight:500;color:var(--ink-3);margin-right:4px;letter-spacing:0}
 .stat-sub{font-size:12px;color:var(--ink-3);line-height:1.55}
+.fee-line{display:inline-block;margin-top:2px;font-family:var(--font-num);color:var(--ink-2)}
 .delta{display:inline-block;margin-top:2px;font-family:var(--font-num);font-weight:600}
 .delta.up{color:var(--warn)}
 .delta.down{color:var(--accent-2)}
@@ -347,6 +348,7 @@ td.r{text-align:right;font-family:var(--font-num);font-variant-numeric:tabular-n
 .pill.off{background:var(--surface-3);border-color:transparent;color:var(--ink-3)}
 .pill.due{background:var(--warn-soft);border-color:transparent;color:var(--warn)}
 .pill.end{background:var(--crit-soft);border-color:transparent;color:var(--crit)}
+.fee-tag{display:block;font-size:11px;color:var(--warn);font-weight:600;margin-top:1px}
 .date-cell{font-family:var(--font-num);font-size:13px;white-space:nowrap}
 .date-cell small{display:block;color:var(--ink-3);font-size:11px;font-family:var(--font-ui)}
 .date-cell.soon{color:var(--warn);font-weight:600}
@@ -394,6 +396,10 @@ tfoot td.r{font-family:var(--font-num);font-variant-numeric:tabular-nums}
 .wlist b{color:var(--ink)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.fee-input{position:relative;display:flex;align-items:center}
+.fee-input input{padding-right:52px}
+.fee-cur{position:absolute;right:11px;font-size:12px;color:var(--ink-3);
+  font-family:var(--font-num);pointer-events:none;font-weight:600}
 .calc-note{font-size:12.5px;color:var(--ink-2);background:var(--surface-3);
   padding:10px 12px;border-radius:8px;line-height:1.6}
 .calc-note b{font-family:var(--font-num);font-variant-numeric:tabular-nums;color:var(--accent-2)}
@@ -676,9 +682,9 @@ function seedSample(p){
   p.items = [
     {name:"房貸",           cat:c("貸款"),     amount:28400, cur:"TWD", cycle:"monthly",  next:dOf(5),   end:iso(new Date(t.getFullYear()+18,t.getMonth(),5)), method:"銀行扣款", note:"20 年期"},
     {name:"車貸",           cat:c("貸款"),     amount:9800,  cur:"TWD", cycle:"monthly",  next:dOf(12),  end:iso(new Date(t.getFullYear()+2,t.getMonth(),12)), method:"銀行扣款", note:""},
-    {name:"Claude Pro",     cat:c("AI 服務"),  amount:20,    cur:"USD", cycle:"monthly",  next:dOf(8),   end:"", method:"信用卡", note:""},
-    {name:"ChatGPT Plus",   cat:c("AI 服務"),  amount:20,    cur:"USD", cycle:"monthly",  next:dOf(19),  end:"", method:"信用卡", note:""},
-    {name:"GitHub Copilot", cat:c("AI 服務"),  amount:100,   cur:"USD", cycle:"yearly",   next:dOf(2,3), end:"", method:"信用卡", note:"年繳較便宜"},
+    {name:"Claude Pro",     cat:c("AI 服務"),  amount:20,    cur:"USD", fee:0.3, cycle:"monthly", next:dOf(8),  end:"", method:"信用卡", note:"國外交易手續費 1.5%"},
+    {name:"ChatGPT Plus",   cat:c("AI 服務"),  amount:20,    cur:"USD", fee:0.3, cycle:"monthly", next:dOf(19), end:"", method:"信用卡", note:"國外交易手續費 1.5%"},
+    {name:"GitHub Copilot", cat:c("AI 服務"),  amount:100,   cur:"USD", fee:1.5, cycle:"yearly",  next:dOf(2,3),end:"", method:"信用卡", note:"年繳較便宜"},
     {name:"Adobe CC 全系列", cat:c("軟體訂閱"), amount:1680, cur:"TWD", cycle:"monthly",  next:dOf(22),  end:"", method:"信用卡", note:""},
     {name:"Microsoft 365",  cat:c("軟體訂閱"), amount:2190,  cur:"TWD", cycle:"yearly",   next:dOf(14,5),end:"", method:"信用卡", note:"家用版 6 人"},
     {name:"Netflix 標準",   cat:c("影音串流"), amount:390,   cur:"TWD", cycle:"monthly",  next:dOf(3),   end:"", method:"信用卡", note:""},
@@ -689,7 +695,7 @@ function seedSample(p){
     {name:"手機門號",       cat:c("電信網路"), amount:599,   cur:"TWD", cycle:"monthly",  next:dOf(25),  end:"", method:"信用卡", note:""},
     {name:"實支實付醫療險", cat:c("保險"),     amount:18600, cur:"TWD", cycle:"yearly",   next:dOf(10,7),end:"", method:"銀行扣款", note:""},
     {name:"機車強制險",     cat:c("保險"),     amount:1800,  cur:"TWD", cycle:"semiannual",next:dOf(20,1),end:"", method:"現金", note:""}
-  ].map(x => Object.assign({id:uid(), status:"active", customMonths:1}, x));
+  ].map(x => Object.assign({id:uid(), status:"active", customMonths:1, fee:0}, x));
 }
 
 function load(){
@@ -706,6 +712,8 @@ function load(){
       p.cats  = p.cats  || [];
       p.items = p.items || [];
       p.base  = p.base  || "TWD";
+      // v1 沒有手續費欄位
+      p.items.forEach(it=>{ if(it.fee === undefined) it.fee = 0; });
     });
     if(!DB.profiles.some(p=>p.id===DB.active)) DB.active = DB.profiles[0].id;
     // 舊版存檔沒有這個欄位；已經在用的人不該再被歡迎一次
@@ -736,10 +744,18 @@ function factorOf(it){
   }
   return CYCLES[it.cycle] ? CYCLES[it.cycle].factor : 1;
 }
-/** 單筆換算成主幣別的每月等值 */
+/** 每期手續費（刷卡國外交易費之類），與金額同幣別 */
+function feeOf(it){ return Math.max(0, Number(it.fee)||0); }
+/** 每期實際刷掉的錢 = 金額 + 手續費 */
+function perCharge(it){ return (Number(it.amount)||0) + feeOf(it); }
+
+/** 單筆換算成主幣別的每月等值（已含手續費） */
 function monthlyOf(it){
-  const amt = Number(it.amount)||0;
-  return amt * rate(it.cur) * factorOf(it);
+  return perCharge(it) * rate(it.cur) * factorOf(it);
+}
+/** 其中屬於手續費的部分 */
+function feeMonthlyOf(it){
+  return feeOf(it) * rate(it.cur) * factorOf(it);
 }
 function stepOf(it){
   if(it.cycle === "custom") return {m: Math.max(1, Number(it.customMonths)||1)};
@@ -777,7 +793,7 @@ function remainingOf(it){
   if(!end) return null;
   const from = new Date(); from.setHours(0,0,0,0);
   const n = chargesIn(it, from, addDays(end,1)).length;
-  return { n, total: n * (Number(it.amount)||0) * rate(it.cur) };
+  return { n, total: n * perCharge(it) * rate(it.cur) };
 }
 function activeIn(list){ return list.filter(i=>i.status==="active"); }
 function monthlySum(list){ return list.reduce((s,i)=>s+monthlyOf(i),0); }
@@ -816,14 +832,17 @@ function renderStatement(){
   const now = new Date(); now.setHours(0,0,0,0);
   const mStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const mEnd   = new Date(now.getFullYear(), now.getMonth()+1, 1);
-  let thisMonth = 0, thisCount = 0;
+  let thisMonth = 0, thisFee = 0, thisCount = 0;
   act.forEach(it=>{
     chargesIn(it, mStart, mEnd).forEach(()=>{
-      thisMonth += (Number(it.amount)||0) * rate(it.cur); thisCount++;
+      thisMonth += perCharge(it) * rate(it.cur);
+      thisFee   += feeOf(it)     * rate(it.cur);
+      thisCount++;
     });
   });
   const paused = items.length - act.length;
   const vsAvg = thisMonth - avg;
+  const feeItems = act.filter(it=>feeOf(it)>0).length;
 
   $("#statement").innerHTML = `
     <div class="stat is-hero">
@@ -832,6 +851,9 @@ function renderStatement(){
       <span class="stat-sub">
         每月平均 ${esc(p.base)} ${money(Math.round(avg))}
         ${thisCount ? `　·　本月 ${thisCount} 筆扣款` : ""}
+        ${thisFee > 0
+          ? `<br><span class="fee-line">含手續費 ${esc(p.base)} ${money(Math.round(thisFee))}　·　本體 ${esc(p.base)} ${money(Math.round(thisMonth-thisFee))}</span>`
+          : (feeItems ? `<br><span class="fee-line">本月無手續費扣款（${feeItems} 筆有設手續費）</span>` : "")}
         ${avg>0 && Math.abs(vsAvg)>=1
           ? `<br><span class="delta ${vsAvg>0?"up":"down"}">${vsAvg>0?"▲":"▼"} 比平均${vsAvg>0?"多":"少"} ${esc(p.base)} ${money(Math.round(Math.abs(vsAvg)))}</span>`
           : ""}
@@ -926,7 +948,7 @@ function renderUpcoming(){
   const list = [];
   scopedActive().forEach(it=>{
     chargesIn(it, from, to).forEach(d=>{
-      if(daysBetween(from, d) <= UP_DAYS) list.push({d, it, base:(Number(it.amount)||0)*rate(it.cur)});
+      if(daysBetween(from, d) <= UP_DAYS) list.push({d, it, base:perCharge(it)*rate(it.cur)});
     });
   });
   list.sort((a,b)=>a.d-b.d);
@@ -945,8 +967,9 @@ function renderUpcoming(){
     const when = dd===0 ? "今天" : dd===1 ? "明天" : dd===2 ? "後天" : dd+" 天後";
     return `<div class="up-row${soon?" up-soon":""}">
       <span class="up-date"><b>${x.d.getDate()}</b>${x.d.getMonth()+1}月</span>
-      <span class="up-name">${esc(x.it.name)}<small>${esc(catName(x.it.cat))}　·　${when}</small></span>
-      <span class="up-amt">${esc(x.it.cur)} ${money(Number(x.it.amount)||0)}</span>
+      <span class="up-name">${esc(x.it.name)}<small>${esc(catName(x.it.cat))}　·　${when}${
+        feeOf(x.it)>0 ? `　·　含手續費 ${money(feeOf(x.it))}` : ""}</small></span>
+      <span class="up-amt">${esc(x.it.cur)} ${money(perCharge(x.it))}</span>
     </div>`;
   }).join("");
 }
@@ -1004,7 +1027,8 @@ function renderTable(){
     return `<tr class="${it.status==="paused"?"is-paused":""}" data-id="${it.id}">
       <td class="cell-name">${esc(it.name)}${it.note?`<small>${esc(it.note)}</small>`:""}</td>
       <td><span class="chip"><span class="dot" style="background:${catColor(it.cat)}"></span>${esc(catName(it.cat))}</span></td>
-      <td class="r">${esc(it.cur)} ${money(Number(it.amount)||0)}</td>
+      <td class="r">${esc(it.cur)} ${money(Number(it.amount)||0)}${
+        feeOf(it)>0 ? `<small class="fee-tag">＋手續費 ${money(feeOf(it))}</small>` : ""}</td>
       <td><span class="pill">${esc(cyc)}</span></td>
       <td class="r"><strong>${money(Math.round(mv))}</strong></td>
       <td>${ended
@@ -1205,7 +1229,7 @@ document.addEventListener("keydown", e=>{
 function itemModal(existing){
   const p = P();
   const it = existing || {
-    id:null, name:"", cat:(p.cats[0]||{}).id, amount:"", cur:p.base,
+    id:null, name:"", cat:(p.cats[0]||{}).id, amount:"", cur:p.base, fee:"",
     cycle:"monthly", customMonths:1, next:todayISO(), end:"", method:"信用卡",
     note:"", status:"active"
   };
@@ -1248,6 +1272,24 @@ function itemModal(existing){
       </div>
       <div class="grid2">
         <div class="field">
+          <label for="fFee">每期手續費（選填）</label>
+          <div class="fee-input">
+            <input type="number" id="fFee" value="${esc(it.fee||"")}" min="0" step="0.01" placeholder="0">
+            <span class="fee-cur" id="feeCur">${esc(it.cur)}</span>
+          </div>
+          <span class="hint">刷卡國外交易費、帳單管理費之類。與上面金額同幣別。</span>
+        </div>
+        <div class="field">
+          <label for="fFeePct">用百分比算</label>
+          <div class="fee-input">
+            <input type="number" id="fFeePct" value="" min="0" step="0.01" placeholder="例如 1.5">
+            <span class="fee-cur">%</span>
+          </div>
+          <span class="hint">填了會依「每期金額」自動換算成左邊的金額。</span>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="field">
           <label for="fNext">下次扣款日</label>
           <input type="date" id="fNext" value="${esc(it.next)}">
           <span class="hint">留空則從今天開始推算。</span>
@@ -1286,10 +1328,17 @@ function itemModal(existing){
   const upd = ()=>{
     const draft = readForm();
     const mv = monthlyOf(draft);
+    const fv = feeMonthlyOf(draft);
     const rem = remainingOf(draft);
+    const fee = feeOf(draft);
     $("#wrapCustom").hidden = $("#fCyc").value !== "custom";
+    $("#feeCur").textContent = draft.cur;
     $("#calcNote").innerHTML =
+      (fee > 0
+        ? `每期實付 <b>${esc(draft.cur)} ${money(draft.amount)}</b> ＋ 手續費 <b>${esc(draft.cur)} ${money(fee)}</b> ＝ <b>${esc(draft.cur)} ${money(perCharge(draft))}</b><br>`
+        : "") +
       `換算後：每月 <b>${esc(p.base)} ${money(Math.round(mv))}</b>　·　每年 <b>${esc(p.base)} ${money(Math.round(mv*12))}</b>` +
+      (fv > 0 ? `<br>其中手續費每月 <b>${esc(p.base)} ${money(Math.round(fv))}</b>　·　每年 <b>${esc(p.base)} ${money(Math.round(fv*12))}</b>` : "") +
       (draft.cur!==p.base ? `<br>使用匯率 1 ${esc(draft.cur)} = ${rate(draft.cur)} ${esc(p.base)}（可在「幣別」設定中調整）` : "") +
       (rem ? `<br>到結束日還有 <b>${rem.n}</b> 期，共 <b>${esc(p.base)} ${money(Math.round(rem.total))}</b>` : "");
   };
@@ -1299,6 +1348,7 @@ function itemModal(existing){
       name: $("#fName").value.trim(),
       cat: $("#fCatSel").value,
       amount: Number($("#fAmt").value)||0,
+      fee: Math.max(0, Number($("#fFee").value)||0),
       cur: $("#fCur").value,
       cycle: $("#fCyc").value,
       customMonths: Math.max(1, Number($("#fCustom").value)||1),
@@ -1309,6 +1359,18 @@ function itemModal(existing){
       status: $("#fStat").value
     };
   }
+
+  /* 百分比輔助：打了 % 就換算成金額；直接改金額欄則清掉 % 免得互相打架 */
+  const syncPct = ()=>{
+    const pct = Number($("#fFeePct").value);
+    if(!$("#fFeePct").value || !isFinite(pct) || pct < 0) return;
+    const amt = Number($("#fAmt").value)||0;
+    $("#fFee").value = amt > 0 ? +(amt * pct / 100).toFixed(2) : 0;
+  };
+  $("#fFeePct").addEventListener("input", ()=>{ syncPct(); upd(); });
+  $("#fAmt").addEventListener("input", ()=>{ syncPct(); upd(); });
+  $("#fFee").addEventListener("input", ()=>{ $("#fFeePct").value = ""; });
+
   m.addEventListener("input", upd);
   m.addEventListener("change", upd);
   upd();
@@ -1572,18 +1634,19 @@ async function offerFile(filename, text){
 
 function toCSV(){
   const p = P();
-  const head = ["名稱","分類","金額","幣別","週期","自訂月數","下次扣款","結束日","付款方式","狀態","備註","每月等值("+p.base+")","每年等值("+p.base+")"];
+  const head = ["名稱","分類","金額","手續費","每期合計","幣別","週期","自訂月數","下次扣款","結束日","付款方式","狀態","備註",
+                "每月等值("+p.base+")","每年等值("+p.base+")","每月手續費("+p.base+")"];
   const q = v => `"${String(v==null?"":v).replace(/"/g,'""')}"`;
   const lines = [head.map(q).join(",")];
   p.items.forEach(it=>{
     const mv = monthlyOf(it);
     lines.push([
-      it.name, catName(it.cat), it.amount, it.cur,
+      it.name, catName(it.cat), it.amount, feeOf(it), perCharge(it), it.cur,
       it.cycle==="custom" ? "每 "+it.customMonths+" 個月" : CYCLES[it.cycle].label,
       it.cycle==="custom" ? it.customMonths : "",
       it.next, it.end||"", it.method||"",
       it.status==="active"?"啟用":"暫停", it.note||"",
-      Math.round(mv), Math.round(mv*12)
+      Math.round(mv), Math.round(mv*12), Math.round(feeMonthlyOf(it))
     ].map(q).join(","));
   });
   return "﻿" + lines.join("\r\n");
@@ -1646,6 +1709,7 @@ function dataModal(){
         name: String(x.name||"未命名"),
         cat: valid.has(x.cat) ? x.cat : np.cats[0].id,
         amount: Number(x.amount)||0,
+        fee: Math.max(0, Number(x.fee)||0),
         cur: x.cur || np.base,
         cycle: CYCLES[x.cycle] ? x.cycle : "monthly",
         customMonths: Math.max(1, Number(x.customMonths)||1),
